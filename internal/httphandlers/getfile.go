@@ -1,8 +1,10 @@
 package httphandlers
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/sviatilnik/go-cdn/internal/storage"
 )
 
@@ -23,14 +25,15 @@ func (h *GetFileHandler) Handle() http.HandlerFunc {
 			return
 		}
 
-		path := r.URL.Query().Get("path")
-		if path == "" {
+		folder := chi.URLParam(r, "folder")
+		filename := chi.URLParam(r, "filename")
+		if folder == "" || filename == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Path is required"))
+			w.Write([]byte("Folder and filename are required"))
 			return
 		}
 
-		file, err := h.storage.GetFile(path)
+		file, err := h.storage.GetFile(r.Context(), fmt.Sprintf("%s/%s", folder, filename))
 		if err != nil {
 			if err == storage.ErrFileNotFound {
 				w.WriteHeader(http.StatusNotFound)

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -23,14 +24,15 @@ func NewServer(cnf *config.Config) *Server {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
-	fsStorage := storage.NewFSStorage("./files")
+	//fsStorage := storage.NewFSStorage("./files")
+	s3Storage, err := storage.NewS3Storage(context.Background())
+	if err != nil {
+		log.Fatalf("failed to create s3 storage: %v", err)
+	}
 
-	r.Post("/save-file", httphandlers.NewSaveFileHandler(fsStorage).Handle())
-	r.Get("/get", httphandlers.NewGetFileHandler(fsStorage).Handle())
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Hello, World!"))
-	})
+	r.Post("/api/v1/files/save", httphandlers.NewSaveFileHandler(s3Storage).Handle())
+	r.Delete("/api/v1/files/delete", httphandlers.NewDeleteFileHandler(s3Storage).Handle())
+	r.Get("/{folder:.*}/{filename:.*}", httphandlers.NewGetFileHandler(s3Storage).Handle())
 
 	serv := &http.Server{
 		Addr:    cnf.Port,
@@ -48,8 +50,8 @@ func (s *Server) Start(ctx context.Context) error {
 	defer cancel()
 
 	go func() {
-		if err := s.httpServer.ListenAndServe(); err != nil {
-			log.Fatal(err)
+		if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("failed to start server: %v", err)
 		}
 	}()
 
@@ -59,6 +61,7 @@ func (s *Server) Start(ctx context.Context) error {
 	defer timeoutContextCancel()
 
 	if err := s.httpServer.Shutdown(timeoutContext); err != nil {
+		log.Fatalf("failed to shutdown server: %v", err)
 		return err
 	}
 

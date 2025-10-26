@@ -9,7 +9,7 @@ import (
 
 func main() {
 	ctg := &config.Config{
-		Port: ":8090",
+		Port: ":8080",
 	}
 
 	server := server.NewServer(ctg)

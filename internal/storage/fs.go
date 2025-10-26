@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -24,7 +25,11 @@ func NewFSStorage(path string) *FSStorage {
 	}
 }
 
-func (s *FSStorage) SaveFile(file io.Reader, filename string) (*File, error) {
+func (s *FSStorage) SaveFile(ctx context.Context, file io.Reader, filename string) (*File, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	if err := s.ensureDirectoryExists(); err != nil {
 		return nil, err
 	}
@@ -68,7 +73,11 @@ func (s *FSStorage) SaveFile(file io.Reader, filename string) (*File, error) {
 	return fileInfo, nil
 }
 
-func (s *FSStorage) GetFile(relativePath string) (*File, error) {
+func (s *FSStorage) GetFile(ctx context.Context, relativePath string) (*File, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	filePath := filepath.Join(s.path, relativePath)
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return nil, ErrFileNotFound
@@ -93,7 +102,11 @@ func (s *FSStorage) GetFile(relativePath string) (*File, error) {
 	}, nil
 }
 
-func (s *FSStorage) DeleteFile(relativePath string) error {
+func (s *FSStorage) DeleteFile(ctx context.Context, relativePath string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
 	filePath := filepath.Join(s.path, relativePath)
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return ErrFileNotFound
@@ -107,7 +120,7 @@ func (s *FSStorage) DeleteFile(relativePath string) error {
 }
 
 func (s *FSStorage) GetFileMaxSize() int64 {
-	return 10 << 20 // 10MB in bytes
+	return 10 << 20
 }
 
 func (s *FSStorage) ensureDirectoryExists() error {

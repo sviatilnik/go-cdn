@@ -3,6 +3,7 @@ package httphandlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/sviatilnik/go-cdn/internal/storage"
@@ -43,8 +44,9 @@ func (h *SaveFileHandler) Handle() http.HandlerFunc {
 			return
 		}
 
-		fileInfo, err := h.storage.SaveFile(file, header.Filename)
+		fileInfo, err := h.storage.SaveFile(r.Context(), file, header.Filename)
 		if err != nil {
+			log.Printf("failed to save file: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
