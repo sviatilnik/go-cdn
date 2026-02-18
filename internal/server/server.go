@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/sviatilnik/go-cdn/internal/config"
 	"github.com/sviatilnik/go-cdn/internal/httphandlers"
+	"github.com/sviatilnik/go-cdn/internal/middlewares"
 	"github.com/sviatilnik/go-cdn/internal/storage"
 )
 
@@ -23,16 +25,17 @@ type Server struct {
 func NewServer(cnf *config.Config) *Server {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+	r.Use(middlewares.GzipCompress)
 
-	//fsStorage := storage.NewFSStorage("./files")
-	s3Storage, err := storage.NewS3Storage(context.Background())
+	storage := storage.NewFSStorage("./files")
+	/* storage, err := storage.NewS3Storage(context.Background())
 	if err != nil {
 		log.Fatalf("failed to create s3 storage: %v", err)
-	}
+	} */
 
-	r.Post("/api/v1/files/save", httphandlers.NewSaveFileHandler(s3Storage).Handle())
-	r.Delete("/api/v1/files/delete", httphandlers.NewDeleteFileHandler(s3Storage).Handle())
-	r.Get("/{folder:.*}/{filename:.*}", httphandlers.NewGetFileHandler(s3Storage).Handle())
+	r.Post("/api/v1/files/save", httphandlers.NewSaveFileHandler(storage).Handle())
+	r.Delete("/api/v1/files/delete", httphandlers.NewDeleteFileHandler(storage).Handle())
+	r.Get("/{folder:.*}/{filename:.*}", httphandlers.NewGetFileHandler(storage).Handle())
 
 	serv := &http.Server{
 		Addr:    cnf.Port,
@@ -50,6 +53,7 @@ func (s *Server) Start(ctx context.Context) error {
 	defer cancel()
 
 	go func() {
+		slog.Info("server starting ...")
 		if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("failed to start server: %v", err)
 		}
@@ -57,6 +61,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	<-notifyContext.Done()
 
+	slog.Info("server shuting down ...")
 	timeoutContext, timeoutContextCancel := context.WithTimeout(ctx, 10*time.Second)
 	defer timeoutContextCancel()
 
@@ -64,6 +69,8 @@ func (s *Server) Start(ctx context.Context) error {
 		log.Fatalf("failed to shutdown server: %v", err)
 		return err
 	}
+
+	slog.Info("server stopped")
 
 	return nil
 }
