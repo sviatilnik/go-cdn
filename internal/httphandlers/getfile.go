@@ -18,6 +18,19 @@ func NewGetFileHandler(storage storage.Storage) *GetFileHandler {
 	}
 }
 
+// GetFile godoc
+// @Summary Получить файл
+// @Description Получает файл по пути
+// @Tags files
+// @Accept json
+// @Produce application/octet-stream
+// @Param folder path string true "Папка файла"
+// @Param filename path string true "Имя файла"
+// @Success 200 "Файл успешно получен"
+// @Failure 400 "Неверный запрос"
+// @Failure 404 "Файл не найден"
+// @Failure 500 "Внутренняя ошибка сервера"
+// @Router /{folder}/{filename} [get]
 func (h *GetFileHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {

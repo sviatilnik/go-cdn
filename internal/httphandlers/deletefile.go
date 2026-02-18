@@ -7,8 +7,9 @@ import (
 	"github.com/sviatilnik/go-cdn/internal/storage"
 )
 
+// deleteFileRequest represents a request to delete a file
 type deleteFileRequest struct {
-	Path string `json:"path"`
+	Path string `json:"path" example:"98ecf8427e/6b141e65-901f-47b7-a1ed-282fd80fc7c6.pdf"`
 }
 
 type DeleteFileHandler struct {
@@ -21,6 +22,17 @@ func NewDeleteFileHandler(storage storage.Storage) *DeleteFileHandler {
 	}
 }
 
+// DeleteFile godoc
+// @Summary Удалить файл
+// @Description Удаляет файл по пути
+// @Tags files
+// @Accept json
+// @Produce json
+// @Param request body deleteFileRequest true "Путь к файлу"
+// @Success 200 "Файл успешно удален"
+// @Failure 400 "Неверный запрос"
+// @Failure 500 "Внутренняя ошибка сервера"
+// @Router /api/v1/files/delete [delete]
 func (h *DeleteFileHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {

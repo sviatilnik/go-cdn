@@ -1,0 +1,121 @@
+basePath: /
+definitions:
+  httphandlers.deleteFileRequest:
+    properties:
+      path:
+        example: 98ecf8427e/6b141e65-901f-47b7-a1ed-282fd80fc7c6.pdf
+        type: string
+    type: object
+  storage.File:
+    description: Информация о файле в хранилище
+    properties:
+      content_type:
+        description: MIME тип файла
+        example: application/pdf
+        type: string
+      filename:
+        description: Имя файла
+        example: 6b141e65-901f-47b7-a1ed-282fd80fc7c6.pdf
+        type: string
+      path:
+        description: Путь к файлу
+        example: 98ecf8427e/6b141e65-901f-47b7-a1ed-282fd80fc7c6.pdf
+        type: string
+      size:
+        description: Размер файла в байтах
+        example: 123456
+        type: integer
+      timestamp:
+        description: Время создания/модификации файла
+        example: "2024-01-15T10:30:00Z"
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для загрузки, получения и удаления файлов
+  title: Go CDN API
+  version: "1.0"
+paths:
+  /{folder}/{filename}:
+    get:
+      consumes:
+      - application/json
+      description: Получает файл по пути
+      parameters:
+      - description: Папка файла
+        in: path
+        name: folder
+        required: true
+        type: string
+      - description: Имя файла
+        in: path
+        name: filename
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Файл успешно получен
+        "400":
+          description: Неверный запрос
+        "404":
+          description: Файл не найден
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Получить файл
+      tags:
+      - files
+  /api/v1/files/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет файл по пути
+      parameters:
+      - description: Путь к файлу
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httphandlers.deleteFileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Файл успешно удален
+        "400":
+          description: Неверный запрос
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Удалить файл
+      tags:
+      - files
+  /api/v1/files/save:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Загружает новый файл в хранилище
+      parameters:
+      - description: Файл для загрузки
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о загруженном файле
+          schema:
+            $ref: '#/definitions/storage.File'
+        "400":
+          description: Неверный запрос
+        "413":
+          description: Файл слишком большой
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Загрузить файл
+      tags:
+      - files
+swagger: "2.0"

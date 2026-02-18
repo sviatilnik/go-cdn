@@ -19,6 +19,18 @@ func NewSaveFileHandler(storage storage.Storage) *SaveFileHandler {
 	}
 }
 
+// SaveFile godoc
+// @Summary Загрузить файл
+// @Description Загружает новый файл в хранилище
+// @Tags files
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Файл для загрузки"
+// @Success 200 {object} storage.File "Информация о загруженном файле"
+// @Failure 400 "Неверный запрос"
+// @Failure 413 "Файл слишком большой"
+// @Failure 500 "Внутренняя ошибка сервера"
+// @Router /api/v1/files/save [post]
 func (h *SaveFileHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {

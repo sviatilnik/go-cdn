@@ -1,0 +1,178 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API для загрузки, получения и удаления файлов",
+        "title": "Go CDN API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/api/v1/files/delete": {
+            "delete": {
+                "description": "Удаляет файл по пути",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Удалить файл",
+                "parameters": [
+                    {
+                        "description": "Путь к файлу",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httphandlers.deleteFileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Файл успешно удален"
+                    },
+                    "400": {
+                        "description": "Неверный запрос"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/api/v1/files/save": {
+            "post": {
+                "description": "Загружает новый файл в хранилище",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Загрузить файл",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Файл для загрузки",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о загруженном файле",
+                        "schema": {
+                            "$ref": "#/definitions/storage.File"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный запрос"
+                    },
+                    "413": {
+                        "description": "Файл слишком большой"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/{folder}/{filename}": {
+            "get": {
+                "description": "Получает файл по пути",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Получить файл",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Папка файла",
+                        "name": "folder",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Имя файла",
+                        "name": "filename",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Файл успешно получен"
+                    },
+                    "400": {
+                        "description": "Неверный запрос"
+                    },
+                    "404": {
+                        "description": "Файл не найден"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "httphandlers.deleteFileRequest": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "example": "98ecf8427e/6b141e65-901f-47b7-a1ed-282fd80fc7c6.pdf"
+                }
+            }
+        },
+        "storage.File": {
+            "description": "Информация о файле в хранилище",
+            "type": "object",
+            "properties": {
+                "content_type": {
+                    "description": "MIME тип файла",
+                    "type": "string",
+                    "example": "application/pdf"
+                },
+                "filename": {
+                    "description": "Имя файла",
+                    "type": "string",
+                    "example": "6b141e65-901f-47b7-a1ed-282fd80fc7c6.pdf"
+                },
+                "path": {
+                    "description": "Путь к файлу",
+                    "type": "string",
+                    "example": "98ecf8427e/6b141e65-901f-47b7-a1ed-282fd80fc7c6.pdf"
+                },
+                "size": {
+                    "description": "Размер файла в байтах",
+                    "type": "integer",
+                    "example": 123456
+                },
+                "timestamp": {
+                    "description": "Время создания/модификации файла",
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                }
+            }
+        }
+    }
+}

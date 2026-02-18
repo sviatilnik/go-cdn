@@ -16,6 +16,9 @@ import (
 	"github.com/sviatilnik/go-cdn/internal/httphandlers"
 	"github.com/sviatilnik/go-cdn/internal/middlewares"
 	"github.com/sviatilnik/go-cdn/internal/storage"
+
+	_ "github.com/sviatilnik/go-cdn/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Server struct {
@@ -32,6 +35,10 @@ func NewServer(cnf *config.Config) *Server {
 	if err != nil {
 		log.Fatalf("failed to create s3 storage: %v", err)
 	} */
+
+	r.Get("/api/v1/docs/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/api/v1/docs/doc.json"),
+	))
 
 	r.Post("/api/v1/files/save", httphandlers.NewSaveFileHandler(storage).Handle())
 	r.Delete("/api/v1/files/delete", httphandlers.NewDeleteFileHandler(storage).Handle())
