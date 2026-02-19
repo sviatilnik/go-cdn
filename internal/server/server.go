@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sviatilnik/go-cdn/internal/config"
 	"github.com/sviatilnik/go-cdn/internal/httphandlers"
 	"github.com/sviatilnik/go-cdn/internal/middlewares"
@@ -30,6 +31,7 @@ func NewServer(cnf *config.Config) *Server {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middlewares.GzipCompress)
+	r.Use(middlewares.Metrics)
 
 	storage, err := storage.GetStorage(context.Background(), &cnf.Storage)
 	if err != nil {
@@ -41,6 +43,9 @@ func NewServer(cnf *config.Config) *Server {
 	r.Get("/api/v1/docs/*", httpSwagger.Handler(
 		httpSwagger.URL("/api/v1/docs/doc.json"),
 	))
+
+	r.Get("/healthz", httphandlers.Healthz())
+	r.Handle("/metrics", promhttp.Handler())
 
 	r.Post("/api/v1/files/save", httphandlers.NewSaveFileHandler(storage).Handle())
 	r.Delete("/api/v1/files/delete", httphandlers.NewDeleteFileHandler(storage).Handle())
