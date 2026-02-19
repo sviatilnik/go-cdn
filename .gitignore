@@ -45,3 +45,5 @@ files/
 # Build output
 dist/
 build/
+
+config/settings.yaml

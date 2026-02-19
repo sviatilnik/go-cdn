@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Server  ServerConfig
 	Storage StorageConfig
+	Auth    AuthConfig
 }
 
 type ServerConfig struct {
@@ -30,6 +31,12 @@ var (
 	FSStorageType StorageType = "fs"
 	S3StorageType StorageType = "s3"
 )
+
+type AuthConfig struct {
+	Issuer string
+	Secret string
+	Exp    int
+}
 
 var (
 	once     sync.Once
