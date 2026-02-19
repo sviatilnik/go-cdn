@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"log/slog"
+	"os"
 
 	"github.com/sviatilnik/go-cdn/internal/config"
 	"github.com/sviatilnik/go-cdn/internal/server"
@@ -13,8 +15,10 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
-	ctg := &config.Config{
-		Port: ":8080",
+	ctg, err := config.GetConfig()
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	server := server.NewServer(ctg)

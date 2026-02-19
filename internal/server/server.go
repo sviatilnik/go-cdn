@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -30,14 +31,15 @@ func NewServer(cnf *config.Config) *Server {
 	r.Use(middleware.Logger)
 	r.Use(middlewares.GzipCompress)
 
-	storage := storage.NewFSStorage("./files")
-	/* storage, err := storage.NewS3Storage(context.Background())
+	storage, err := storage.GetStorage(context.Background(), &cnf.Storage)
 	if err != nil {
-		log.Fatalf("failed to create s3 storage: %v", err)
-	} */
+		log.Fatalf("failed to create storage: %v", err)
+	}
+
+	slog.Info(fmt.Sprintf("storage %s inited", cnf.Storage.Type))
 
 	r.Get("/api/v1/docs/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/api/v1/docs/doc.json"),
+		httpSwagger.URL("/api/v1/docs/doc.json"),
 	))
 
 	r.Post("/api/v1/files/save", httphandlers.NewSaveFileHandler(storage).Handle())
@@ -45,7 +47,7 @@ func NewServer(cnf *config.Config) *Server {
 	r.Get("/{folder:.*}/{filename:.*}", httphandlers.NewGetFileHandler(storage).Handle())
 
 	serv := &http.Server{
-		Addr:    cnf.Port,
+		Addr:    ":" + cnf.Server.Port,
 		Handler: r,
 	}
 

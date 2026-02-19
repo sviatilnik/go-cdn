@@ -16,22 +16,23 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
+	appConfig "github.com/sviatilnik/go-cdn/internal/config"
 )
 
 type S3Storage struct {
 	client *s3.Client
 }
 
-func NewS3Storage(ctx context.Context) (*S3Storage, error) {
+func NewS3Storage(ctx context.Context, cnf *appConfig.StorageConfig) (*S3Storage, error) {
 	cfg, err := config.LoadDefaultConfig(ctx,
-		config.WithRegion("ru-central1"),
+		config.WithRegion(cnf.Region),
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.BaseEndpoint = aws.String("https://storage.yandexcloud.net")
+		o.BaseEndpoint = aws.String(cnf.URL)
 	})
 
 	return &S3Storage{
