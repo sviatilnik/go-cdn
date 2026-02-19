@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/api/v1/files/delete": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Удаляет файл по пути",
                 "consumes": [
                     "application/json"
@@ -46,6 +51,9 @@ const docTemplate = `{
                     "400": {
                         "description": "Неверный запрос"
                     },
+                    "401": {
+                        "description": "Неавторизован"
+                    },
                     "500": {
                         "description": "Внутренняя ошибка сервера"
                     }
@@ -54,6 +62,11 @@ const docTemplate = `{
         },
         "/api/v1/files/save": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Загружает новый файл в хранилище",
                 "consumes": [
                     "multipart/form-data"
@@ -83,6 +96,9 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Неверный запрос"
+                    },
+                    "401": {
+                        "description": "Неавторизован"
                     },
                     "413": {
                         "description": "Файл слишком большой"
@@ -180,6 +196,13 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
@@ -190,7 +213,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Go CDN API",
-	Description:      "API для загрузки, получения и удаления файлов",
+	Description:      "API CDN",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

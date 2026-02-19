@@ -28,8 +28,10 @@ func NewSaveFileHandler(storage storage.Storage) *SaveFileHandler {
 // @Param file formData file true "Файл для загрузки"
 // @Success 200 {object} storage.File "Информация о загруженном файле"
 // @Failure 400 "Неверный запрос"
+// @Failure 401 "Неавторизован"
 // @Failure 413 "Файл слишком большой"
 // @Failure 500 "Внутренняя ошибка сервера"
+// @Security BearerAuth
 // @Router /api/v1/files/save [post]
 func (h *SaveFileHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

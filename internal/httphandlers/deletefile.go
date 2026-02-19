@@ -31,7 +31,9 @@ func NewDeleteFileHandler(storage storage.Storage) *DeleteFileHandler {
 // @Param request body deleteFileRequest true "Путь к файлу"
 // @Success 200 "Файл успешно удален"
 // @Failure 400 "Неверный запрос"
+// @Failure 401 "Неавторизован"
 // @Failure 500 "Внутренняя ошибка сервера"
+// @Security BearerAuth
 // @Router /api/v1/files/delete [delete]
 func (h *DeleteFileHandler) Handle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

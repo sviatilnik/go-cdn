@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API для загрузки, получения и удаления файлов",
+        "description": "API CDN",
         "title": "Go CDN API",
         "contact": {},
         "version": "1.0"
@@ -11,6 +11,11 @@
     "paths": {
         "/api/v1/files/delete": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Удаляет файл по пути",
                 "consumes": [
                     "application/json"
@@ -40,6 +45,9 @@
                     "400": {
                         "description": "Неверный запрос"
                     },
+                    "401": {
+                        "description": "Неавторизован"
+                    },
                     "500": {
                         "description": "Внутренняя ошибка сервера"
                     }
@@ -48,6 +56,11 @@
         },
         "/api/v1/files/save": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Загружает новый файл в хранилище",
                 "consumes": [
                     "multipart/form-data"
@@ -77,6 +90,9 @@
                     },
                     "400": {
                         "description": "Неверный запрос"
+                    },
+                    "401": {
+                        "description": "Неавторизован"
                     },
                     "413": {
                         "description": "Файл слишком большой"
@@ -173,6 +189,13 @@
                     "example": "2024-01-15T10:30:00Z"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

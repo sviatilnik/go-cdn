@@ -14,12 +14,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	_ "github.com/sviatilnik/go-cdn/docs"
+	"github.com/sviatilnik/go-cdn/internal/auth"
 	"github.com/sviatilnik/go-cdn/internal/config"
 	"github.com/sviatilnik/go-cdn/internal/httphandlers"
 	"github.com/sviatilnik/go-cdn/internal/middlewares"
 	"github.com/sviatilnik/go-cdn/internal/storage"
-
-	_ "github.com/sviatilnik/go-cdn/docs"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -32,6 +32,9 @@ func NewServer(cnf *config.Config) *Server {
 	r.Use(middleware.Logger)
 	r.Use(middlewares.GzipCompress)
 	r.Use(middlewares.Metrics)
+
+	authService := auth.NewAuthService(cnf.Auth.Issuer, cnf.Auth.Secret, cnf.Auth.Exp)
+	authMiddleware := middlewares.NewAuthService(authService)
 
 	storage, err := storage.GetStorage(context.Background(), &cnf.Storage)
 	if err != nil {
@@ -47,8 +50,13 @@ func NewServer(cnf *config.Config) *Server {
 	r.Get("/healthz", httphandlers.Healthz())
 	r.Handle("/metrics", promhttp.Handler())
 
-	r.Post("/api/v1/files/save", httphandlers.NewSaveFileHandler(storage).Handle())
-	r.Delete("/api/v1/files/delete", httphandlers.NewDeleteFileHandler(storage).Handle())
+	r.Group(func(r chi.Router) {
+		r.Use(authMiddleware.Handle)
+
+		r.Post("/api/v1/files/save", httphandlers.NewSaveFileHandler(storage).Handle())
+		r.Delete("/api/v1/files/delete", httphandlers.NewDeleteFileHandler(storage).Handle())
+	})
+
 	r.Get("/{folder:.*}/{filename:.*}", httphandlers.NewGetFileHandler(storage).Handle())
 
 	serv := &http.Server{

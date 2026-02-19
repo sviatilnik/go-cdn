@@ -21,6 +21,9 @@ var (
 // @description API CDN
 // @host localhost:8080
 // @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	slog.Info(fmt.Sprintf("Version: %s, Commit: %s, Date: %s", version, commit, date))
 

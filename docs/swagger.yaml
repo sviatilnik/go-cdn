@@ -33,7 +33,7 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: API для загрузки, получения и удаления файлов
+  description: API CDN
   title: Go CDN API
   version: "1.0"
 paths:
@@ -86,8 +86,12 @@ paths:
           description: Файл успешно удален
         "400":
           description: Неверный запрос
+        "401":
+          description: Неавторизован
         "500":
           description: Внутренняя ошибка сервера
+      security:
+      - BearerAuth: []
       summary: Удалить файл
       tags:
       - files
@@ -111,11 +115,20 @@ paths:
             $ref: '#/definitions/storage.File'
         "400":
           description: Неверный запрос
+        "401":
+          description: Неавторизован
         "413":
           description: Файл слишком большой
         "500":
           description: Внутренняя ошибка сервера
+      security:
+      - BearerAuth: []
       summary: Загрузить файл
       tags:
       - files
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
