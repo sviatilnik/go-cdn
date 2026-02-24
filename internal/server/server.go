@@ -29,9 +29,11 @@ type Server struct {
 
 func NewServer(cnf *config.Config) *Server {
 	r := chi.NewRouter()
+
 	r.Use(middleware.Logger)
 	r.Use(middlewares.GzipCompress)
 	r.Use(middlewares.Metrics)
+	r.Use(middlewares.NewLimiterMiddleware().Handle)
 
 	authService := auth.NewAuthService(cnf.Auth.Issuer, cnf.Auth.Secret, cnf.Auth.Exp)
 	authMiddleware := middlewares.NewAuthService(authService)
@@ -75,7 +77,7 @@ func (s *Server) Start(ctx context.Context) error {
 	defer cancel()
 
 	go func() {
-		slog.Info("server starting ...")
+		slog.Info("server starting on " + s.httpServer.Addr)
 		if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("failed to start server: %v", err)
 		}
