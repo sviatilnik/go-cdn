@@ -45,7 +45,11 @@ func (h *DeleteFileHandler) Handle() http.HandlerFunc {
 		var req deleteFileRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid request body"))
+
+			if _, err = w.Write([]byte("Invalid request body")); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 
@@ -56,6 +60,10 @@ func (h *DeleteFileHandler) Handle() http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("File deleted successfully"))
+
+		if _, err = w.Write([]byte("File deleted successfully")); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 }

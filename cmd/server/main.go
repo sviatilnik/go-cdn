@@ -34,5 +34,10 @@ func main() {
 	}
 
 	server := server.NewServer(ctg)
-	server.Start(context.Background())
+	err = server.Start(context.Background())
+	if err != nil {
+		slog.Error(err.Error())
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 }

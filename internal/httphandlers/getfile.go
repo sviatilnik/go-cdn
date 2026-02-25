@@ -2,6 +2,7 @@ package httphandlers
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -42,7 +43,10 @@ func (h *GetFileHandler) Handle() http.HandlerFunc {
 		filename := chi.URLParam(r, "filename")
 		if folder == "" || filename == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Folder and filename are required"))
+			if _, err := w.Write([]byte("Folder and filename are required")); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 
@@ -55,8 +59,14 @@ func (h *GetFileHandler) Handle() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer file.File.Close()
 
-		http.ServeContent(w, r, file.Filename, file.Timestamp, file.File)
+		defer func() {
+			if err := file.File.Close(); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				slog.Error(err.Error())
+			}
+		}()
+
+		defer http.ServeContent(w, r, file.Filename, file.Timestamp, file.File)
 	}
 }

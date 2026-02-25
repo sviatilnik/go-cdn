@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log/slog"
 	"mime"
 	"os"
 	"path/filepath"
@@ -50,7 +51,13 @@ func (s *FSStorage) SaveFile(ctx context.Context, file io.Reader, filename strin
 	if err != nil {
 		return nil, err
 	}
-	defer outFile.Close()
+
+	defer func() {
+		err := outFile.Close()
+		if err != nil {
+			slog.Error(err.Error())
+		}
+	}()
 
 	_, err = io.Copy(outFile, file)
 	if err != nil {

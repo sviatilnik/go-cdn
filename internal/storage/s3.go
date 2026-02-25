@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log/slog"
 	"mime"
 	"path/filepath"
 	"strings"
@@ -83,7 +84,12 @@ func (s *S3Storage) GetFile(ctx context.Context, relativePath string) (*File, er
 		return nil, err
 	}
 
-	defer result.Body.Close()
+	defer func() {
+		err := result.Body.Close()
+		if err != nil {
+			slog.Error(err.Error())
+		}
+	}()
 
 	body, err := io.ReadAll(result.Body)
 	if err != nil {

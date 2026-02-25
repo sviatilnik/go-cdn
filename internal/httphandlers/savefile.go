@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/sviatilnik/go-cdn/internal/storage"
@@ -50,11 +51,21 @@ func (h *SaveFileHandler) Handle() http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				slog.Error(err.Error())
+			}
+		}()
 
 		if header.Size > h.storage.GetFileMaxSize() {
 			w.WriteHeader(http.StatusRequestEntityTooLarge)
-			w.Write([]byte(fmt.Sprintf("File size exceeds maximum allowed size: %d bytes", h.storage.GetFileMaxSize())))
+			_, err = w.Write([]byte(fmt.Sprintf("File size exceeds maximum allowed size: %d bytes", h.storage.GetFileMaxSize())))
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				slog.Error(err.Error())
+				return
+			}
 			return
 		}
 
@@ -73,6 +84,11 @@ func (h *SaveFileHandler) Handle() http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(jsonData)
+		_, err = w.Write(jsonData)
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			slog.Error(err.Error())
+		}
 	}
 }
