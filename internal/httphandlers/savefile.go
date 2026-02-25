@@ -60,8 +60,7 @@ func (h *SaveFileHandler) Handle() http.HandlerFunc {
 
 		if header.Size > h.storage.GetFileMaxSize() {
 			w.WriteHeader(http.StatusRequestEntityTooLarge)
-			_, err = w.Write([]byte(fmt.Sprintf("File size exceeds maximum allowed size: %d bytes", h.storage.GetFileMaxSize())))
-			if err != nil {
+			if _, err = fmt.Fprintf(w, "File size exceeds maximum allowed size: %d bytes", h.storage.GetFileMaxSize()); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				slog.Error(err.Error())
 				return
